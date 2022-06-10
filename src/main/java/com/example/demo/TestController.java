@@ -8,6 +8,6 @@ public class TestController {
 
 @GetMapping("/health")
 public String health() {
-  return "Hello From Bhavesh & Welcome to Simplilearn !!!";
+  return "Hello From BlinkTrade !!!";
 }
 }
