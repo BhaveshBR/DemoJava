@@ -5,7 +5,7 @@ pipeline {
         AWS_DEFAULT_REGION="us-east-2"
         IMAGE_REPO_NAME="demojava"
         IMAGE_TAG="latest"
-        EKS_CLUSTER_NAME = "simplilearn-eks"
+        EKS_CLUSTER_NAME = "demo-eks"
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
         NAMESPACE = "dev"
     }
