@@ -1,53 +1,55 @@
 pipeline {
     agent any 
-    tools {
-        maven "TestMaven"
-    
+    environment { 
+        AWS_ACCOUNT_ID="617292774228"
+        AWS_DEFAULT_REGION="us-east-2"
+        IMAGE_REPO_NAME="demojava"
+        IMAGE_TAG="latest"
+        EKS_CLUSTER_NAME = "simplilearn-eks"
+        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+        NAMESPACE = "dev"
     }
     stages {
-        stage('Compile and Clean') { 
+        stage('Logging into AWS ECR and AWS EKS') {
             steps {
-                // Run Maven on a Unix agent.
-              
-                sh "mvn clean"
+                sh '''
+                  echo "Logging into AWS ECR and AWS EKS"
+                  aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+                  aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
+                '''
             }
         }
-        stage('deploy') { 
-            
+    }
+    stages {
+        stage('Build Docker Image') {
             steps {
-                sh "mvn install"
+                sh '''
+                  echo "Build Docker Image"
+                  mvn clean
+                  mvn install
+                  docker build -t  ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
+                '''
             }
         }
-        stage('Build Docker image'){
-          
+    }
+    stages {
+        stage('Push Docker Image to ECR') {
             steps {
-                echo "Hello Java Express"
-                sh 'ls'
-                sh 'docker build -t  bhaveshraval/docker_jenkins_springboot:${BUILD_NUMBER} .'
+                sh '''
+                  echo "Push Docker Image to ECR"
+                  docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+                  docker push ${REPOSITORY_URI}:${IMAGE_TAG}"
+                '''
             }
         }
-        stage('Docker Login'){
-            
+    }
+    stages {
+        stage('Deploy to Image to EKS') {
             steps {
-                 withCredentials([string(credentialsId: 'DockerId', variable: 'Dockerpwd')]) {
-                    sh "docker login -u bhaveshraval -p ${Dockerpwd}"
-                }
-            }                
-        }
-        stage('Docker Push'){
-            steps {
-                sh 'docker push bhaveshraval/docker_jenkins_springboot:${BUILD_NUMBER}'
-            }
-        }
-        stage('Docker deploy'){
-            steps {
-               
-                sh 'docker run -itd -p  8081:8080 bhaveshraval/docker_jenkins_springboot:${BUILD_NUMBER}'
-            }
-        }
-        stage('Archving') { 
-            steps {
-                 archiveArtifacts '**/target/*.jar'
+                sh '''
+                  echo "Deploy to Image to EKS"
+                  helm upgrade sh-insights-{NAMESPACE} sh-insights --set image=${REPOSITORY_URI}:${IMAGE_TAG} --namespace ${NAMESPACE}
+                '''
             }
         }
     }
