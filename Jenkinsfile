@@ -48,6 +48,9 @@ pipeline {
             steps {
                 sh '''
                   echo "Deploy to Image to EKS"
+                  git clone https://github.com/BhaveshBR/DemoHelm.git
+                  cd DemoHelm
+                  git pull
                   helm upgrade sh-insights-{NAMESPACE} sh-insights --set image=${REPOSITORY_URI}:${IMAGE_TAG} --namespace ${NAMESPACE}
                 '''
             }
