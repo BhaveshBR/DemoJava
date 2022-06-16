@@ -14,6 +14,7 @@ pipeline {
             steps {
                 sh '''
                   echo "Logging into AWS ECR and AWS EKS"
+                  cd /home/ubuntu
                   aws s3 ls
                   aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
                   aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
