@@ -19,8 +19,6 @@ pipeline {
                 '''
             }
         }
-    }
-    stages {
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -31,8 +29,6 @@ pipeline {
                 '''
             }
         }
-    }
-    stages {
         stage('Push Docker Image to ECR') {
             steps {
                 sh '''
@@ -42,8 +38,6 @@ pipeline {
                 '''
             }
         }
-    }
-    stages {
         stage('Deploy to Image to EKS') {
             steps {
                 sh '''
